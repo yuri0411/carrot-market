@@ -2,8 +2,8 @@ import type { NextPage } from 'next'
 
 const Home: NextPage = () => {
     return (
-        <div className="bg-slate-400 xl:place-content-center py-20 px-10 grid gap-10 xl:grid-cols-3 lg:grid-cols-2 min-h-screen">
-            <div className="bg-white flex flex-col justify-between p-6 rounded-3xl shadow-xl">
+        <div className="dark bg-slate-400 xl:place-content-center py-20 px-10 grid gap-10 xl:grid-cols-3 lg:grid-cols-2 min-h-screen">
+            <div className="dark:bg-gray-800 bg-white flex flex-col justify-between p-6 rounded-3xl shadow-xl">
                 <span className="font-semibold text-3xl">Select Item</span>
                 {[1, 2, 3, 4, 5].map((i) => (
                     <div
