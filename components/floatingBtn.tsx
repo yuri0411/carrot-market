@@ -1,4 +1,8 @@
-const FloatingBtn = ({ type }) => {
+interface FloatingBtn {
+    type: string
+}
+
+const FloatingBtn = ({ type }: FloatingBtn) => {
     const getTypeOfButtonIcons = () => {
         if (type === 'plus') {
             return (
