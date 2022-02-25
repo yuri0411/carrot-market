@@ -11,7 +11,7 @@ async function handler(
     res: NextApiResponse<ResponseType>,
 ) {
     const { phone, email } = req.body
-    const user = phone ? { phone: +phone } : { email } ? { email } : null
+    const user = phone ? { phone: phone } : { email } ? { email } : null
     if (!user) return res.status(400).json({ ok: false })
     const payload = Math.floor(10000 + Math.random() * 900000) + ''
     const token = await client.token.create({
@@ -19,7 +19,9 @@ async function handler(
             payload,
             user: {
                 connectOrCreate: {
-                    where: { ...user },
+                    where: {
+                        ...user,
+                    },
                     create: {
                         name: 'Anonymous',
                         ...user,
@@ -50,4 +52,4 @@ async function handler(
     })
 }
 
-export default withHandler('POST', handler)
+export default withHandler({ method: 'POST', handler, isPrivate: false })
