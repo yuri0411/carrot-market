@@ -1,8 +1,11 @@
+import Link from 'next/link'
+
 interface FloatingBtn {
     type: string
+    url: string
 }
 
-const FloatingBtn = ({ type }: FloatingBtn) => {
+const FloatingBtn = ({ type, url }: FloatingBtn) => {
     const getTypeOfButtonIcons = () => {
         if (type === 'plus') {
             return (
@@ -59,9 +62,13 @@ const FloatingBtn = ({ type }: FloatingBtn) => {
         }
     }
     return (
-        <button className="fixed hover:bg-orange-500 transition-colors cursor-pointer  bottom-24 right-5 shadow-xl bg-orange-400 rounded-full p-4 text-white">
-            {getTypeOfButtonIcons()}
-        </button>
+        <Link href={url}>
+            <a>
+                <button className="fixed hover:bg-orange-500 transition-colors cursor-pointer  bottom-24 right-5 shadow-xl bg-orange-400 rounded-full p-4 text-white">
+                    {getTypeOfButtonIcons()}
+                </button>
+            </a>
+        </Link>
     )
 }
 
