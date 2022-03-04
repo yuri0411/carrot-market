@@ -60,7 +60,7 @@ const Community: NextPage = () => {
                     </div>
                 </div>
             ))}
-            <FloatingBtn type="community" />
+            <FloatingBtn type="community" url={`#`} />
         </Layout>
     )
 }

@@ -14,7 +14,7 @@ const Live: NextPage = () => {
                         </h3>
                     </div>
                 ))}
-                <FloatingBtn type={'live'} />
+                <FloatingBtn type={'live'} url={`/`} />
             </div>
         </Layout>
     )
