@@ -1,11 +1,12 @@
 import type { NextPage } from 'next'
 import Layout from '../../components/layout'
 import { useRouter } from 'next/router'
-import useSWR from 'swr'
+import useSWR, { useSWRConfig } from 'swr'
 import Link from 'next/link'
 import { Product, User } from '@prisma/client'
 import useMutation from '@libs/client/useMutation'
 import { cls } from '@libs/client/utils'
+import useUser from '@libs/client/useUser'
 
 interface ProductWithUser extends Product {
     user: User
@@ -17,13 +18,25 @@ interface ItemDetailResponse {
     isLiked: boolean
 }
 const ItemDetail: NextPage = () => {
+    const { user, isLoading } = useUser()
     const router = useRouter()
-    const { data } = useSWR<ItemDetailResponse>(
+    const { mutate } = useSWRConfig()
+    const { data, mutate: boundMutate } = useSWR<ItemDetailResponse>(
         router.query.id ? `/api/products/${router.query.id}` : null,
     )
     const [toggleFav] = useMutation(`/api/products/${router.query.id}/fav`)
 
     const onFavClick = () => {
+        if (!data) return
+        boundMutate(
+            (prev) =>
+                prev && {
+                    ...prev,
+                    isLiked: !prev.isLiked,
+                },
+            false,
+        )
+        // mutate('/api/users/me', (prev: any) => ({ ok: !prev.ok }), false) // unbound mutate 데이터가 컴포넌트 내부의 없을 경우 사용
         toggleFav({})
     }
     return (
@@ -68,14 +81,14 @@ const ItemDetail: NextPage = () => {
                                     className={cls(
                                         'p-3 flex items-center justify-center hover:text-orange-500 hover:bg-orange-50 rounded-md ',
                                         data?.isLiked
-                                            ? 'text-orange-500 bg-orange-50'
+                                            ? 'text-orange-500'
                                             : 'text-gray-400',
                                     )}
                                 >
                                     {data?.isLiked ? (
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
-                                            className="h-5 w-5"
+                                            className="h-6 w-6"
                                             viewBox="0 0 20 20"
                                             fill="currentColor"
                                         >

@@ -8,9 +8,15 @@ import useSWR from 'swr'
 import { Product } from '@prisma/client'
 import Link from 'next/link'
 
+interface ProductWithCount extends Product {
+    _count: {
+        favs: number
+    }
+}
+
 interface ProductResponse {
     ok: boolean
-    products: Product[]
+    products: ProductWithCount[]
 }
 
 const Home: NextPage = () => {
@@ -31,7 +37,7 @@ const Home: NextPage = () => {
                                 title={product.name}
                                 price={product.price}
                                 comments={1}
-                                hearts={1}
+                                hearts={product._count.favs}
                             />
                         </a>
                     </Link>
