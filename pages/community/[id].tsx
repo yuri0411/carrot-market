@@ -4,6 +4,12 @@ import { useRouter } from 'next/router'
 import useSWR from 'swr'
 import { Answer, Post, User } from '@prisma/client'
 import Link from 'next/link'
+import useMutation from '@libs/client/useMutation'
+import { cls } from '@libs/client/utils'
+import Textarea from '@components/textarea'
+import { useForm } from 'react-hook-form'
+import { useEffect } from 'react'
+import answer from '../api/posts/[id]/answer'
 
 interface AnswerWithUser extends Answer {
     user: User
@@ -20,15 +26,64 @@ interface PostWithUser extends Post {
 interface communityPostResponse {
     ok: boolean
     post: PostWithUser
+    isWondering: boolean
+}
+
+interface AnswerForm {
+    answer: string
+}
+
+interface AnswerResponse {
+    ok: boolean
+    response: Answer
 }
 
 const CommunityPostDetail: NextPage = () => {
     const router = useRouter()
-    const { data, error } = useSWR<communityPostResponse>(
+    const { register, handleSubmit, reset } = useForm<AnswerForm>()
+    const { data, mutate } = useSWR<communityPostResponse>(
         router.query.id ? `/api/posts/${router.query.id}` : null,
     )
+    const [wonder, { loading }] = useMutation(
+        `/api/posts/${router.query.id}/wonder`,
+    )
+    const [sendAnswer, { data: answerData, loading: answerLoading }] =
+        useMutation<AnswerResponse>(`/api/posts/${router.query.id}/answer`)
+
+    const onWonderClick = () => {
+        if (!data) return
+        mutate(
+            {
+                ...data,
+                post: {
+                    ...data?.post,
+                    _count: {
+                        ...data?.post?._count,
+                        wondering: data.isWondering
+                            ? data?.post?._count.wondering - 1
+                            : data?.post?._count.wondering + 1,
+                    },
+                },
+                isWondering: !data?.isWondering,
+            },
+            false,
+        )
+        if (!loading) {
+            wonder({})
+        }
+    }
+
+    const onValid = (form: AnswerForm) => {
+        if (answerLoading) return
+        sendAnswer(form)
+    }
+    useEffect(() => {
+        if (answerData && answerData.ok) {
+            reset()
+        }
+    }, [answerData, reset])
+
     // todo data가 앖을 때 404페이지로 redirect하기
-    console.log(data)
     return (
         <Layout canGoBack>
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 ml-4">
@@ -54,7 +109,13 @@ const CommunityPostDetail: NextPage = () => {
                     {data?.post?.question}
                 </div>
                 <div className="flex space-x-5 mt-3 text-gray-700 py-2.5 border-t border-b-[1.5px] w-full px-4">
-                    <span className="flex space-x-2 items-center text-sm">
+                    <button
+                        onClick={onWonderClick}
+                        className={cls(
+                            'flex space-x-2 items-center text-sm',
+                            data?.isWondering ? 'text-teal-500' : '',
+                        )}
+                    >
                         <svg
                             className="w-4 h-4"
                             fill="none"
@@ -70,7 +131,7 @@ const CommunityPostDetail: NextPage = () => {
                             />
                         </svg>
                         <span>궁금해요 {data?.post?._count?.wondering}</span>
-                    </span>
+                    </button>
                     <span className="flex space-x-2 items-center text-sm">
                         <svg
                             className="w-4 h-4"
@@ -91,7 +152,7 @@ const CommunityPostDetail: NextPage = () => {
                 </div>
             </div>
             <div className="px-4 my-5 space-y-5">
-                {data?.post?.answers.map((answer) => (
+                {data?.post?.answers?.map((answer) => (
                     <div
                         key={answer.id}
                         className="flex items-start space-x-3 "
@@ -111,16 +172,21 @@ const CommunityPostDetail: NextPage = () => {
                     </div>
                 ))}
             </div>
-            <div className="px-4">
-                <textarea
-                    className="mt-1 shadow-sm w-full  focus:ring-orange-500 focus:border-orange-500 rounded-md border-gray-300"
-                    rows={4}
+            <form onSubmit={handleSubmit(onValid)} className="px-4">
+                <Textarea
+                    name="description"
                     placeholder="Answer this question!"
+                    required
+                    register={register('answer', {
+                        required: true,
+                        minLength: 5,
+                    })}
                 />
+
                 <button className="w-full mt-2 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 focus:outline-none">
-                    Reply
+                    {answerLoading ? 'Loading...' : 'Reply'}
                 </button>
-            </div>
+            </form>
         </Layout>
     )
 }
