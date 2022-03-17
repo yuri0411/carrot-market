@@ -80,8 +80,9 @@ const CommunityPostDetail: NextPage = () => {
     useEffect(() => {
         if (answerData && answerData.ok) {
             reset()
+            mutate()
         }
-    }, [answerData, reset])
+    }, [answerData, reset, mutate])
 
     // todo data가 앖을 때 404페이지로 redirect하기
     return (
